@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smart_waste_mobile/config/app_theme.dart';
+import 'package:smart_waste_mobile/views/dashboard/home_screen.dart';
+import 'package:smart_waste_mobile/views/profile/profile_screen.dart';
+import 'package:smart_waste_mobile/views/reports/report_list_screen.dart';
+import 'package:smart_waste_mobile/views/scanner/ai_scanner_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -19,13 +23,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     _currentIndex = widget.initialIndex;
   }
 
+  void _navigateToTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      const Center(child: Text('Beranda')),
-      const Center(child: Text('Scan AI')),
-      const Center(child: Text('Riwayat Laporan')),
-      const Center(child: Text('Profil')),
+      HomeScreen(onNavigateToReports: () => _navigateToTab(2)),
+      const AiScannerScreen(),
+      const ReportListScreen(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
