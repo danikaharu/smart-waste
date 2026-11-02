@@ -20,7 +20,7 @@ class ReportApiTest extends TestCase
 
         // Mock ML service response
         Http::fake([
-            'http://127.0.0.1:8000/predict' => Http::response([
+            '*/predict*' => Http::response([
                 'status' => 'success',
                 'data' => [
                     'label' => 'Plastic Waste',

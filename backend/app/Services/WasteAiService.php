@@ -11,7 +11,7 @@ class WasteAiService
 
     public function __construct()
     {
-        $this->mlUrl = rtrim(config('services.ml.url', env('ML_SERVICE_URL', 'http://127.0.0.1:8000')), '/');
+        $this->mlUrl = rtrim(config('services.ml.url', env('ML_SERVICE_URL', 'http://127.0.0.1:5000')), '/');
     }
 
     /**
