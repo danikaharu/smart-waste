@@ -36,8 +36,7 @@ class WastePredictor:
 
         img = img.resize((224, 224), Image.Resampling.BILINEAR)
         img_arr = np.array(img, dtype=np.float32)
-        # MobileNetV2 preprocessing: scale to [-1, 1]
-        img_arr = tf.keras.applications.mobilenet_v2.preprocess_input(img_arr)
+        # Note: Model graph already includes mobilenet_v2.preprocess_input layer
         img_tensor = np.expand_dims(img_arr, axis=0)
         
         preds = self.model.predict(img_tensor, verbose=0)[0]
