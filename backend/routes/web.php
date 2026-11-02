@@ -26,7 +26,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
     Route::put('/reports/{id}/status', [\App\Http\Controllers\Admin\ReportController::class, 'updateStatus'])->name('reports.updateStatus');
     Route::delete('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])->name('reports.destroy');
-    Route::get('/users', function () { return 'Users index'; })->name('users.index');
+    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+    Route::put('/users/{id}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.updateRole');
+    Route::put('/users/{id}/toggle-active', [\App\Http\Controllers\Admin\UserController::class, 'toggleActive'])->name('users.toggleActive');
 });
 
 // Citizen User Routes (Guarded by auth & role:user)
