@@ -126,4 +126,77 @@ class ReportApiTest extends TestCase
         $successResp->assertStatus(200);
         $this->assertNotEmpty($successResp->json('data.token'));
     }
+
+    public function test_public_feed_does_not_leak_user_phone_or_email_to_citizens(): void
+    {
+        $citizen = User::create([
+            'name' => 'Citizen Reporter',
+            'email' => 'secret_citizen@test.com',
+            'phone' => '08999999999',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $viewer = User::create([
+            'name' => 'Viewer Citizen',
+            'email' => 'viewer@test.com',
+            'phone' => '08111111111',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        Report::create([
+            'user_id' => $citizen->id,
+            'title' => 'Tumpukan Sampah Plastik',
+            'description' => 'Di pinggir jalan',
+            'image_path' => 'reports/test.jpg',
+            'latitude' => -6.2,
+            'longitude' => 106.8,
+            'waste_category' => 'Plastic Waste',
+            'status' => 'pending',
+        ]);
+
+        $viewerToken = $viewer->createToken('test')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer {$viewerToken}")
+            ->getJson('/api/reports?public_feed=true');
+
+        $response->assertStatus(200);
+        $data = $response->json('data.0');
+        $this->assertNotNull($data);
+        $this->assertEquals('Citizen Reporter', $data['user']['name']);
+        // Crucial security assertions: email and phone must be omitted from public feed
+        $this->assertArrayNotHasKey('email', $data['user']);
+        $this->assertArrayNotHasKey('phone', $data['user']);
+    }
+
+    public function test_rejects_invalid_upload_mime_types(): void
+    {
+        $user = User::create([
+            'name' => 'Uploader',
+            'email' => 'uploader@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $token = $user->createToken('test')->plainTextToken;
+
+        // Try uploading a plain text file pretending to be an image
+        $fakeTxt = UploadedFile::fake()->create('malicious.txt', 100, 'text/plain');
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/reports', [
+                'title' => 'Test Malicious File',
+                'image' => $fakeTxt,
+                'latitude' => -6.2,
+                'longitude' => 106.8,
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['image']);
+    }
 }
+

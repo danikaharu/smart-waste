@@ -216,7 +216,17 @@
             fillOpacity: 0.9
         }).addTo(map);
 
-        marker.bindPopup("<b>{{ addslashes($report->title) }}</b><br>{{ addslashes($report->address_note ?? '') }}").openPopup();
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            var div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        var reportTitle = @json($report->title);
+        var reportAddress = @json($report->address_note ?? '');
+        var popupHtml = "<b>" + escapeHtml(reportTitle) + "</b>" + (reportAddress ? "<br>" + escapeHtml(reportAddress) : "");
+        marker.bindPopup(popupHtml).openPopup();
     });
 </script>
 @endpush

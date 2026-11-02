@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Public Authentication API Routes
+| Public Authentication API Routes (Rate-limited to 10 attempts/minute)
 |--------------------------------------------------------------------------
 */
-Route::post('/register', [AuthApiController::class, 'register']);
-Route::post('/login', [AuthApiController::class, 'login']);
+Route::middleware('throttle:10,1')->group(function () {
+    Route::post('/register', [AuthApiController::class, 'register']);
+    Route::post('/login', [AuthApiController::class, 'login']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -29,8 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reports', [ReportApiController::class, 'store']);
     Route::get('/reports/{id}', [ReportApiController::class, 'show']);
 
-    // ML Waste Image Classification Proxy
-    Route::post('/detect-waste', [AiDetectionApiController::class, 'detect']);
+    // ML Waste Image Classification Proxy (Rate-limited to prevent abuse)
+    Route::post('/detect-waste', [AiDetectionApiController::class, 'detect'])->middleware('throttle:20,1');
 
     // Dashboard Statistics
     Route::get('/dashboard/stats', [DashboardApiController::class, 'stats']);

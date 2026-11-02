@@ -15,7 +15,7 @@ class AiDetectionApiController extends Controller
     public function detect(Request $request, WasteAiService $aiService): JsonResponse
     {
         $request->validate([
-            'image' => ['required', 'image', 'max:10240'],
+            'image' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
         ]);
 
         $file = $request->file('image');

@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Log;
 class WasteAiService
 {
     protected string $mlUrl;
+    protected ?string $mlKey;
 
     public function __construct()
     {
         $this->mlUrl = rtrim(config('services.ml.url', env('ML_SERVICE_URL', 'http://127.0.0.1:5000')), '/');
+        $this->mlKey = config('services.ml.key', env('ML_SERVICE_KEY', ''));
     }
 
     /**
@@ -24,7 +26,14 @@ class WasteAiService
     public function detectWaste(string $filePath, string $filename = 'image.jpg'): array
     {
         try {
-            $response = Http::timeout(5)
+            $httpClient = Http::timeout(5);
+            if (!empty($this->mlKey)) {
+                $httpClient = $httpClient->withHeaders([
+                    'X-Internal-Secret' => $this->mlKey,
+                ]);
+            }
+
+            $response = $httpClient
                 ->attach('file', file_get_contents($filePath), $filename)
                 ->post("{$this->mlUrl}/predict");
 

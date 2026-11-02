@@ -16,11 +16,14 @@ class ReportApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Report::with('user:id,name,email,phone')
-            ->latest();
+        $isAdmin = ($request->user()->role === 'admin');
+        // Prevent PII leakage (phone, email) for non-admin public feed callers
+        $userRelation = $isAdmin ? 'user:id,name,email,phone' : 'user:id,name';
+
+        $query = Report::with($userRelation)->latest();
 
         // If not admin, restrict to own reports unless requested for public feed
-        if ($request->user()->role !== 'admin' && ! $request->boolean('public_feed', false)) {
+        if (! $isAdmin && ! $request->boolean('public_feed', false)) {
             $query->where('user_id', $request->user()->id);
         }
 
@@ -68,7 +71,7 @@ class ReportApiController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['required', 'image', 'max:10240'],
+            'image' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'address_note' => ['nullable', 'string', 'max:500'],

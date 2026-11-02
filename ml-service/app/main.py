@@ -1,7 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from typing import Optional
+from fastapi import FastAPI, UploadFile, File, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from app.predictor import predictor
-from app.config import ALLOWED_CONTENT_TYPES, CLASS_MAPPINGS
+from app import config
 
 app = FastAPI(
     title="Smart Waste AI Detection API",
@@ -11,12 +12,13 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Enable CORS for seamless integration with Web Admin (Laravel/SPA) and Mobile (Flutter)
+# Secure CORS configuration
+is_wildcard = "*" in config.CORS_ORIGINS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=config.CORS_ORIGINS,
+    allow_credentials=not is_wildcard,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -35,28 +37,44 @@ def health():
     return {
         "status": "healthy" if is_loaded else "degraded",
         "model_loaded": is_loaded,
-        "classes": [CLASS_MAPPINGS[i]["name"] for i in range(len(CLASS_MAPPINGS))]
+        "classes": [config.CLASS_MAPPINGS[i]["name"] for i in range(len(config.CLASS_MAPPINGS))]
     }
 
 @app.post("/predict", tags=["Inference"])
-async def predict_waste(file: UploadFile = File(..., description="Waste image file (JPEG, PNG, WebP)")):
-    # 1. Validate content type
-    if file.content_type not in ALLOWED_CONTENT_TYPES:
+async def predict_waste(
+    file: UploadFile = File(..., description="Waste image file (JPEG, PNG, WebP)"),
+    x_internal_secret: Optional[str] = Header(None, alias="X-Internal-Secret")
+):
+    # 1. Verify internal API key if configured
+    if config.INTERNAL_API_KEY and x_internal_secret != config.INTERNAL_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: Missing or invalid internal API secret header."
+        )
+
+    # 2. Validate content type
+    if file.content_type not in config.ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Uploaded file is not a supported image format. Allowed: {sorted(list(ALLOWED_CONTENT_TYPES))}"
+            detail=f"Uploaded file is not a supported image format. Allowed: {sorted(list(config.ALLOWED_CONTENT_TYPES))}"
         )
         
-    # 2. Check model readiness
+    # 3. Check model readiness
     if predictor.model is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Machine learning model is currently not loaded or unavailable."
         )
 
-    # 3. Read image bytes and run inference
+    # 4. Read image bytes with max size limit and run inference
     try:
-        content = await file.read()
+        content = await file.read(config.MAX_IMAGE_SIZE_BYTES + 1)
+        if len(content) > config.MAX_IMAGE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Uploaded file exceeds maximum limit of {config.MAX_IMAGE_SIZE_BYTES} bytes."
+            )
+
         if len(content) == 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -69,6 +87,8 @@ async def predict_waste(file: UploadFile = File(..., description="Waste image fi
             "filename": file.filename,
             "data": result
         }
+    except HTTPException:
+        raise
     except ValueError as ve:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -79,3 +99,4 @@ async def predict_waste(file: UploadFile = File(..., description="Waste image fi
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Inference error: {str(e)}"
         )
+

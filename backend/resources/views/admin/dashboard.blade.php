@@ -226,6 +226,13 @@
             }
         }
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            var div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
         reportsData.forEach(function (rep) {
             if (rep.latitude && rep.longitude) {
                 var color = getMarkerColor(rep.status);
@@ -238,13 +245,19 @@
                     fillOpacity: 0.85
                 }).addTo(map);
 
+                var safeTitle = escapeHtml(rep.title);
+                var safeCategory = escapeHtml(rep.waste_category);
+                var safeStatus = escapeHtml(rep.status);
+                var safeImg = rep.image_url ? encodeURI(rep.image_url) : '';
+                var safeId = encodeURIComponent(rep.id);
+
                 var popupContent = `
                     <div style="font-family: inherit; width: 200px; color: #0f172a;">
-                        <img src="${rep.image_url}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 6px;">
-                        <strong style="font-size: 13px; display: block; line-height: 1.2;">${rep.title}</strong>
-                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Kategori: <b>${rep.waste_category}</b></div>
-                        <div style="font-size: 11px; margin-top: 2px;">Status: <b style="text-transform: capitalize; color: ${color};">${rep.status}</b></div>
-                        <a href="/admin/reports/${rep.id}" style="display: block; text-align: center; margin-top: 8px; padding: 4px 8px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">Buka Detail</a>
+                        ${safeImg ? `<img src="${safeImg}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 6px;">` : ''}
+                        <strong style="font-size: 13px; display: block; line-height: 1.2;">${safeTitle}</strong>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Kategori: <b>${safeCategory}</b></div>
+                        <div style="font-size: 11px; margin-top: 2px;">Status: <b style="text-transform: capitalize; color: ${color};">${safeStatus}</b></div>
+                        <a href="/admin/reports/${safeId}" style="display: block; text-align: center; margin-top: 8px; padding: 4px 8px; background: #10b981; color: white; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold;">Buka Detail</a>
                     </div>
                 `;
                 circleMarker.bindPopup(popupContent);

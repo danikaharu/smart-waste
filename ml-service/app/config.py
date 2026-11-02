@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,3 +16,9 @@ ALLOWED_CONTENT_TYPES = {
     "image/png",
     "image/webp"
 }
+
+# Security Configurations
+INTERNAL_API_KEY = os.getenv("ML_INTERNAL_API_KEY", "")
+MAX_IMAGE_SIZE_BYTES = int(os.getenv("MAX_IMAGE_SIZE_BYTES", str(10 * 1024 * 1024))) # 10MB
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+
