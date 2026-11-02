@@ -16,7 +16,6 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('d MMM yyyy, HH:mm', 'id_ID');
     final formattedDate = report.createdAt != null
         ? DateFormat('d MMM yyyy, HH:mm').format(report.createdAt!)
         : '-';

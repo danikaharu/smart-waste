@@ -111,6 +111,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         _isAutoDetected = false;
       });
 
+      if (!mounted) return;
+
       // Automatically classify with AI
       final aiProvider = Provider.of<AiProvider>(context, listen: false);
       final detection = await aiProvider.classifyImage(bytes, name);
@@ -266,7 +268,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                         top: 10,
                         right: 10,
                         child: CircleAvatar(
-                          backgroundColor: Colors.black.withOpacity(0.6),
+                          backgroundColor: Colors.black.withValues(alpha: 0.6),
                           child: IconButton(
                             icon: const Icon(Icons.close, color: Colors.white, size: 20),
                             onPressed: () {

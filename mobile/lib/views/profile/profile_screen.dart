@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_waste_mobile/config/app_constants.dart';
 import 'package:smart_waste_mobile/config/app_theme.dart';
 import 'package:smart_waste_mobile/providers/auth_provider.dart';
 import 'package:smart_waste_mobile/providers/report_provider.dart';

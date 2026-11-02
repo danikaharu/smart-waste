@@ -12,7 +12,7 @@ void main() {
   });
 
   test('AppTheme defines primary eco green color', () {
-    expect(AppTheme.primaryColor.value, isNotNull);
-    expect(AppTheme.accentColor.value, isNotNull);
+    expect(AppTheme.primaryColor.toARGB32(), isNotNull);
+    expect(AppTheme.accentColor.toARGB32(), isNotNull);
   });
 }

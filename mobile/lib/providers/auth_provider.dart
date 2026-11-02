@@ -22,18 +22,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> checkAuthStatus() async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
       final user = await authService.getProfile();
       _currentUser = user;
-      _isLoading = false;
       notifyListeners();
       return _currentUser != null;
     } catch (_) {
       _currentUser = null;
-      _isLoading = false;
       notifyListeners();
       return false;
     }

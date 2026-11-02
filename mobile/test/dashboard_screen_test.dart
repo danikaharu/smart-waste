@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_waste_mobile/config/app_theme.dart';
-import 'package:smart_waste_mobile/models/user_model.dart';
 import 'package:smart_waste_mobile/providers/auth_provider.dart';
 import 'package:smart_waste_mobile/providers/report_provider.dart';
 import 'package:smart_waste_mobile/services/api_service.dart';
