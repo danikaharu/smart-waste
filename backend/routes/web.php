@@ -22,14 +22,16 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Admin Routes (Guarded by auth & role:admin)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/reports', function () { return 'Reports index'; })->name('reports.index');
-    Route::get('/reports/{id}', function ($id) { return 'Report ' . $id; })->name('reports.show');
+    Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
+    Route::put('/reports/{id}/status', [\App\Http\Controllers\Admin\ReportController::class, 'updateStatus'])->name('reports.updateStatus');
+    Route::delete('/reports/{id}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])->name('reports.destroy');
     Route::get('/users', function () { return 'Users index'; })->name('users.index');
 });
 
 // Citizen User Routes (Guarded by auth & role:user)
 Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('user.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\User\UserReportController::class, 'index'])->name('dashboard');
+    Route::get('/reports/create', [\App\Http\Controllers\User\UserReportController::class, 'create'])->name('reports.create');
+    Route::post('/reports', [\App\Http\Controllers\User\UserReportController::class, 'store'])->name('reports.store');
 });
