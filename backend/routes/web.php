@@ -21,9 +21,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 
 // Admin Routes (Guarded by auth & role:admin)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard', ['stats' => []]);
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/reports', function () { return 'Reports index'; })->name('reports.index');
+    Route::get('/reports/{id}', function ($id) { return 'Report ' . $id; })->name('reports.show');
+    Route::get('/users', function () { return 'Users index'; })->name('users.index');
 });
 
 // Citizen User Routes (Guarded by auth & role:user)
